@@ -1,11 +1,17 @@
-name: 'Your name here'
-description: 'Provide a description here'
-author: 'Your name or organization here'
+name: 'add-github-ssh-key'
+description: 'Adds your github ssh keys to the correct destination'
+author: 'seemethere'
 inputs:
-  milliseconds: # change this
+  GITHUB_TOKEN:
     required: true
-    description: 'input description here'
-    default: 'default value if applicable'
+  activate-with-label:
+    required: true
+    description: 'Tells the action only to add keys when specific label is applied, set false if you want the key to always be added'
+    default: true
+  label:
+    required: true
+    description: 'Label to activate action with'
+    default: 'with-ssh'
 runs:
   using: 'node12'
   main: 'dist/index.js'
