@@ -21,4 +21,16 @@ jobs:
       - uses: actions/checkout@v2
       - uses: ./
         with:
-          milliseconds: 1000
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          activate-with-label: false
+      - name: Check SSH key is there
+        if: (github.event_name == 'pull_request')
+        run: |
+          test -e ~/.ssh/authorized_keys
+          diff \
+            <(curl -fsSL "https://github.com/${{ github.actor}}.keys" | sed -z '$ s/\n$//') \
+            ~/.ssh/authorized_keys
+      - name: Check SSH key is not there
+        if: (github.event_name == 'push')
+        run: |
+          test -e ~/.ssh/authorized_keys
