@@ -3,16 +3,10 @@ import fs from 'fs'
 import path from 'path'
 
 import {install} from 'source-map-support'
-import {getIP, writeAuthorizedKeys} from '../src/add-github-ssh-key'
+import {writeAuthorizedKeys} from '../src/add-github-ssh-key'
 import {expect, test} from '@jest/globals'
 
 install()
-
-test('ip found', async () => {
-  const ip = getIP()
-  console.debug(`IP is: ${ip}`)
-  expect(ip).not.toBe('')
-})
 
 test('keys can be written', async () => {
   const tmpDir = tmp.dirSync()
