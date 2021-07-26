@@ -38,10 +38,13 @@ async function run(): Promise<void> {
         return
       }
     }
+    core.info(
+      `Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`
+    )
     await writeAuthorizedKeys(os.homedir(), await getGithubKeys(octokit))
+    core.info(`Public keys successfully pulled and installed`)
     const ips = await getIPs()
-    core.info(`Login for IPv4: ssh ${os.userInfo().username}@${ips.ipv4}`)
-    core.info(`Login For IPv6: ssh ${os.userInfo().username}@${ips.ipv6}`)
+    core.info(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
   } catch (error) {
     core.setFailed(error.message)
   }
