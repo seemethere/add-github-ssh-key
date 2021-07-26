@@ -1,6 +1,6 @@
 {
   "name": "add-github-ssh-key",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "private": false,
   "description": "Adds github ssh key to github actions runner",
   "main": "dist/index.js",

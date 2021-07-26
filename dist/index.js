@@ -11645,10 +11645,11 @@ async function run() {
                 return;
             }
         }
+        core.info(`Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`);
         await writeAuthorizedKeys(external_os_default().homedir(), await getGithubKeys(octokit));
+        core.info(`Public keys successfully pulled and installed`);
         const ips = await getIPs();
-        core.info(`Login for IPv4: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
-        core.info(`Login For IPv6: ssh ${external_os_default().userInfo().username}@${ips.ipv6}`);
+        core.info(`Login using: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
     }
     catch (error) {
         core.setFailed(error.message);
