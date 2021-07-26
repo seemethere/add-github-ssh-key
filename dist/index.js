@@ -11559,79 +11559,57 @@ var github = __nccwpck_require__(5438);
 // EXTERNAL MODULE: ./node_modules/source-map-support/source-map-support.js
 var source_map_support = __nccwpck_require__(9249);
 ;// CONCATENATED MODULE: ./src/add-github-ssh-key.ts
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-
 
 
 
 
 
 (0,source_map_support.install)();
-function getGithubKeys(octokit) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const { actor } = github.context;
-        const keys = yield octokit.users.listPublicKeysForUser({
-            username: actor
-        });
-        if (keys.data.length === 0) {
-            core.warning('No SSH keys found for user, ssh keys will not be added');
-            return '';
-        }
-        return keys.data.map(e => e.key).join('\n');
+async function getGithubKeys(octokit) {
+    const { actor } = github.context;
+    const keys = await octokit.users.listPublicKeysForUser({
+        username: actor
     });
+    if (keys.data.length === 0) {
+        core.warning('No SSH keys found for user, ssh keys will not be added');
+        return '';
+    }
+    return keys.data.map(e => e.key).join('\n');
 }
-function writeAuthorizedKeys(homedir, keys) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const authorizedKeysPath = external_path_default().resolve(external_path_default().join(homedir, '.ssh', 'authorized_keys'));
-        external_fs_default().mkdirSync(external_path_default().dirname(authorizedKeysPath), { recursive: true });
-        external_fs_default().writeFileSync(authorizedKeysPath, keys);
-        external_fs_default().chmodSync(external_path_default().dirname(authorizedKeysPath), 0o700);
-        external_fs_default().chmodSync(authorizedKeysPath, 0o644);
+async function writeAuthorizedKeys(homedir, keys) {
+    const authorizedKeysPath = external_path_default().resolve(external_path_default().join(homedir, '.ssh', 'authorized_keys'));
+    external_fs_default().mkdirSync(external_path_default().dirname(authorizedKeysPath), { recursive: true });
+    external_fs_default().writeFileSync(authorizedKeysPath, keys);
+    external_fs_default().chmodSync(external_path_default().dirname(authorizedKeysPath), 0o700);
+    external_fs_default().chmodSync(authorizedKeysPath, 0o644);
+}
+
+// EXTERNAL MODULE: ./node_modules/@actions/http-client/index.js
+var http_client = __nccwpck_require__(9925);
+;// CONCATENATED MODULE: ./src/get-ip.ts
+
+async function getIPs() {
+    var _a, _b;
+    const maxRetries = 10;
+    const http = new http_client.HttpClient('seemethere/add-github-ssh-key', undefined, {
+        allowRetries: true,
+        maxRetries
     });
-}
-function getIP() {
-    const ifaces = external_os_default().networkInterfaces();
-    let address = '';
-    if (ifaces === undefined) {
-        core.setFailed("Wait we don't have network interfaces?");
-        throw Error('No network interfaces found');
+    const ipv4 = await http.getJson('https://api.ipify.org?format=json');
+    const ipv6 = await http.getJson('https://api64.ipify.org?format=json');
+    if (ipv4.result === undefined || ipv6.result === undefined) {
+        throw Error(`Unable to grab ip addresses for runner see, ipv4 status: "${ipv4.statusCode}", ipv6 status: "${ipv6.statusCode}"`);
     }
-    // Iterate over interfaces ...
-    for (const [, dev] of Object.entries(ifaces)) {
-        if (dev === undefined) {
-            throw Error('Wait no device?');
-        }
-        // ... and find the one that matches the criteria
-        const iface = dev.filter(function (details) {
-            return details.family === 'IPv4' && details.internal === false;
-        });
-        if (iface.length > 0) {
-            address = iface[0].address;
-        }
-    }
-    return address;
+    return {
+        ipv4: (_a = ipv4.result) === null || _a === void 0 ? void 0 : _a.ip,
+        ipv6: (_b = ipv6.result) === null || _b === void 0 ? void 0 : _b.ip
+    };
 }
 
 // EXTERNAL MODULE: ./node_modules/@octokit/rest/dist-node/index.js
 var dist_node = __nccwpck_require__(5375);
 ;// CONCATENATED MODULE: ./src/main.ts
-var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+
 
 
 
@@ -11639,42 +11617,42 @@ var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arg
 
 
 (0,source_map_support.install)();
-function run() {
+async function run() {
     var _a;
-    return main_awaiter(this, void 0, void 0, function* () {
-        try {
-            const activateWithLabel = core.getBooleanInput('activate-with-label');
-            const sshLabel = core.getInput('label');
-            const github_token = core.getInput('GITHUB_TOKEN');
-            const octokit = new dist_node/* Octokit */.v({ auth: github_token });
-            if (github.context.eventName !== 'pull_request') {
-                core.info('Not on pull request, skipping adding ssh keys');
+    try {
+        const activateWithLabel = core.getBooleanInput('activate-with-label');
+        const sshLabel = core.getInput('label');
+        const github_token = core.getInput('GITHUB_TOKEN');
+        const octokit = new dist_node/* Octokit */.v({ auth: github_token });
+        if (github.context.eventName !== 'pull_request') {
+            core.info('Not on pull request, skipping adding ssh keys');
+            return;
+        }
+        else if (activateWithLabel) {
+            const labels = await octokit.issues.listLabelsOnIssue({
+                owner: github.context.repo.owner,
+                repo: github.context.repo.repo,
+                issue_number: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number
+            });
+            let sshLabelSet = false;
+            for (const label of labels.data) {
+                if (label.name === sshLabel) {
+                    sshLabelSet = true;
+                }
+            }
+            if (!sshLabelSet) {
+                core.info(`Label ${sshLabel} not set, skipping adding ssh keys`);
                 return;
             }
-            else if (activateWithLabel) {
-                const labels = yield octokit.issues.listLabelsOnIssue({
-                    owner: github.context.repo.owner,
-                    repo: github.context.repo.repo,
-                    issue_number: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number
-                });
-                let sshLabelSet = false;
-                for (const label of labels.data) {
-                    if (label.name === sshLabel) {
-                        sshLabelSet = true;
-                    }
-                }
-                if (!sshLabelSet) {
-                    core.info(`Label ${sshLabel} not set, skipping adding ssh keys`);
-                    return;
-                }
-            }
-            yield writeAuthorizedKeys(external_os_default().homedir(), yield getGithubKeys(octokit));
-            core.info(`Login with ${external_os_default().userInfo().username}@${getIP()}`);
         }
-        catch (error) {
-            core.setFailed(error.message);
-        }
-    });
+        await writeAuthorizedKeys(external_os_default().homedir(), await getGithubKeys(octokit));
+        const ips = await getIPs();
+        core.info(`Login for IPv4: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
+        core.info(`Login For IPv6: ssh ${external_os_default().userInfo().username}@${ips.ipv6}`);
+    }
+    catch (error) {
+        core.setFailed(error.message);
+    }
 }
 run();
 

@@ -1,6 +1,7 @@
 import os from 'os'
 
-import {getGithubKeys, writeAuthorizedKeys, getIP} from './add-github-ssh-key'
+import {getGithubKeys, writeAuthorizedKeys} from './add-github-ssh-key'
+import {getIPs} from './get-ip'
 
 import * as core from '@actions/core'
 import * as github from '@actions/github'
@@ -38,7 +39,9 @@ async function run(): Promise<void> {
       }
     }
     await writeAuthorizedKeys(os.homedir(), await getGithubKeys(octokit))
-    core.info(`Login with ${os.userInfo().username}@${getIP()}`)
+    const ips = await getIPs()
+    core.info(`Login for IPv4: ssh ${os.userInfo().username}@${ips.ipv4}`)
+    core.info(`Login For IPv6: ssh ${os.userInfo().username}@${ips.ipv6}`)
   } catch (error) {
     core.setFailed(error.message)
   }
