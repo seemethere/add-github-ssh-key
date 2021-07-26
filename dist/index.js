@@ -11640,21 +11640,33 @@ var main_awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arg
 
 (0,source_map_support.install)();
 function run() {
-    var _a, _b;
+    var _a;
     return main_awaiter(this, void 0, void 0, function* () {
         try {
             const activateWithLabel = core.getBooleanInput('activate-with-label');
-            const label = core.getInput('label');
+            const sshLabel = core.getInput('label');
             const github_token = core.getInput('GITHUB_TOKEN');
             const octokit = new dist_node/* Octokit */.v({ auth: github_token });
-            const labels = (_b = (_a = github.context.payload) === null || _a === void 0 ? void 0 : _a.pull_request) === null || _b === void 0 ? void 0 : _b.labels;
             if (github.context.eventName !== 'pull_request') {
                 core.info('Not on pull request, skipping adding ssh keys');
                 return;
             }
-            else if (activateWithLabel && !labels.includes(label)) {
-                core.info(`Label ${label} not set, skipping adding ssh keys`);
-                return;
+            else if (activateWithLabel) {
+                const labels = yield octokit.issues.listLabelsOnIssue({
+                    owner: github.context.repo.owner,
+                    repo: github.context.repo.repo,
+                    issue_number: (_a = github.context.payload.pull_request) === null || _a === void 0 ? void 0 : _a.number
+                });
+                let sshLabelSet = false;
+                for (const label of labels.data) {
+                    if (label.name === sshLabel) {
+                        sshLabelSet = true;
+                    }
+                }
+                if (!sshLabelSet) {
+                    core.info(`Label ${sshLabel} not set, skipping adding ssh keys`);
+                    return;
+                }
             }
             yield writeAuthorizedKeys(external_os_default().homedir(), yield getGithubKeys(octokit));
             core.info(`Login with ${external_os_default().userInfo().username}@${getIP()}`);
