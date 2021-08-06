@@ -44,7 +44,7 @@ async function run(): Promise<void> {
     await writeAuthorizedKeys(os.homedir(), await getGithubKeys(octokit))
     core.info(`Public keys successfully pulled and installed`)
     const ips = await getIPs()
-    core.info(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
+    core.warning(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
   } catch (error) {
     core.setFailed(error.message)
   }
