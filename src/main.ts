@@ -41,8 +41,11 @@ async function run(): Promise<void> {
     core.info(
       `Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`
     )
-    await writeAuthorizedKeys(os.homedir(), await getGithubKeys(octokit))
-    core.info(`Public keys successfully pulled and installed`)
+    const authorizedKeysPath = await writeAuthorizedKeys(
+      os.homedir(),
+      await getGithubKeys(octokit)
+    )
+    core.info(`Public keys pulled and installed to ${authorizedKeysPath}`)
     const ips = await getIPs()
     core.warning(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
   } catch (error) {

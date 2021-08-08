@@ -10320,6 +10320,7 @@ async function writeAuthorizedKeys(homedir, keys) {
     external_fs_default().writeFileSync(authorizedKeysPath, keys);
     external_fs_default().chmodSync(external_path_default().dirname(authorizedKeysPath), 0o700);
     external_fs_default().chmodSync(authorizedKeysPath, 0o644);
+    return authorizedKeysPath;
 }
 
 // EXTERNAL MODULE: ./node_modules/@actions/http-client/index.js
@@ -10384,8 +10385,8 @@ async function run() {
             }
         }
         core.info(`Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`);
-        await writeAuthorizedKeys(external_os_default().homedir(), await getGithubKeys(octokit));
-        core.info(`Public keys successfully pulled and installed`);
+        const authorizedKeysPath = await writeAuthorizedKeys(external_os_default().homedir(), await getGithubKeys(octokit));
+        core.info(`Public keys pulled and installed to ${authorizedKeysPath}`);
         const ips = await getIPs();
         core.warning(`Login using: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
     }

@@ -23,7 +23,7 @@ export async function getGithubKeys(octokit: Octokit): Promise<string> {
 export async function writeAuthorizedKeys(
   homedir: string,
   keys: string
-): Promise<void> {
+): Promise<string> {
   const authorizedKeysPath = path.resolve(
     path.join(homedir, '.ssh', 'authorized_keys')
   )
@@ -31,4 +31,5 @@ export async function writeAuthorizedKeys(
   fs.writeFileSync(authorizedKeysPath, keys)
   fs.chmodSync(path.dirname(authorizedKeysPath), 0o700)
   fs.chmodSync(authorizedKeysPath, 0o644)
+  return authorizedKeysPath
 }
