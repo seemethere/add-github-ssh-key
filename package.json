@@ -30,7 +30,7 @@
     "source-map-support": "^0.5.19"
   },
   "devDependencies": {
-    "@types/node": "^16.4.12",
+    "@types/node": "^16.6.0",
     "@types/tmp": "^0.2.1",
     "@typescript-eslint/parser": "^4.29.0",
     "@vercel/ncc": "^0.29.0",
