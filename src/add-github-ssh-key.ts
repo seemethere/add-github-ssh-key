@@ -27,9 +27,7 @@ export async function writeAuthorizedKeys(
   const authorizedKeysPath = path.resolve(
     path.join(homedir, '.ssh', 'authorized_keys')
   )
-  fs.mkdirSync(path.dirname(authorizedKeysPath), {recursive: true})
-  fs.writeFileSync(authorizedKeysPath, keys)
-  fs.chmodSync(path.dirname(authorizedKeysPath), 0o700)
-  fs.chmodSync(authorizedKeysPath, 0o644)
+  fs.mkdirSync(path.dirname(authorizedKeysPath), {recursive: true, mode: 0o700})
+  fs.writeFileSync(authorizedKeysPath, keys, {mode: 0o400, flag: 'wx'})
   return authorizedKeysPath
 }
