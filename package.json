@@ -10,6 +10,7 @@
     "format": "prettier --write **/*.ts",
     "format-check": "prettier --check **/*.ts",
     "lint": "eslint src/**/*.ts",
+    "lint-fix": "eslint --fix src/**/*.ts",
     "test": "jest --testTimeout 10000",
     "all": "yarn run build && yarn run format && yarn run lint && yarn test && yarn release"
   },
