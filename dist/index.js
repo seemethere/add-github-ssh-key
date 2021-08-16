@@ -10317,7 +10317,7 @@ async function getGithubKeys(octokit) {
 async function writeAuthorizedKeys(homedir, keys) {
     const authorizedKeysPath = external_path_default().resolve(external_path_default().join(homedir, '.ssh', 'authorized_keys'));
     external_fs_default().mkdirSync(external_path_default().dirname(authorizedKeysPath), { recursive: true, mode: 0o700 });
-    external_fs_default().writeFileSync(authorizedKeysPath, keys, { mode: 0o400, flag: 'wx' });
+    external_fs_default().writeFileSync(authorizedKeysPath, keys, { mode: 0o400, flag: 'w' });
     return authorizedKeysPath;
 }
 

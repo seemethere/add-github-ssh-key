@@ -28,6 +28,6 @@ export async function writeAuthorizedKeys(
     path.join(homedir, '.ssh', 'authorized_keys')
   )
   fs.mkdirSync(path.dirname(authorizedKeysPath), {recursive: true, mode: 0o700})
-  fs.writeFileSync(authorizedKeysPath, keys, {mode: 0o400, flag: 'wx'})
+  fs.writeFileSync(authorizedKeysPath, keys, {mode: 0o400, flag: 'w'})
   return authorizedKeysPath
 }
