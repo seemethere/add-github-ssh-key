@@ -10386,7 +10386,7 @@ async function run() {
         const authorizedKeysPath = await writeAuthorizedKeys(external_os_default().homedir(), await getGithubKeys(octokit));
         core.info(`Public keys pulled and installed to ${authorizedKeysPath}`);
         const ips = await getIPs();
-        core.warning(`Login using: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
+        core.warning(`[${github.context.job}] Log in to node using: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
     }
     catch (error) {
         core.setFailed(error.message);

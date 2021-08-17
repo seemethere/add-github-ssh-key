@@ -47,7 +47,11 @@ async function run(): Promise<void> {
     )
     core.info(`Public keys pulled and installed to ${authorizedKeysPath}`)
     const ips = await getIPs()
-    core.warning(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
+    core.warning(
+      `[${github.context.job}] Log in to node using: ssh ${
+        os.userInfo().username
+      }@${ips.ipv4}`
+    )
   } catch (error) {
     core.setFailed(error.message)
   }
