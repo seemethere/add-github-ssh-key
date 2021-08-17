@@ -12,6 +12,10 @@ inputs:
     required: true
     description: 'Label to activate action with'
     default: 'with-ssh'
+  remove-existing-keys:
+    required: true
+    description: 'Removes existing keys at ~/.ssh/authorized_keys before adding new ones'
+    default: true
 runs:
   using: 'node12'
   main: 'dist/index.js'

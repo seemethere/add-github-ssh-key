@@ -20,6 +20,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: ./
+        name: Check if can write keys
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          activate-with-label: false
+      - uses: ./
+        name: Check if can overwrite keys
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           activate-with-label: false
@@ -41,6 +47,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: ./
+        name: Check if can write keys
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          activate-with-label: false
+      - uses: ./
+        name: Check if can overwrite keys
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           activate-with-label: false

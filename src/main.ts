@@ -17,6 +17,9 @@ async function run(): Promise<void> {
     )
     const sshLabel: string = core.getInput('label')
     const github_token: string = core.getInput('GITHUB_TOKEN')
+    const removeExistingKeys: boolean = core.getBooleanInput(
+      'remove-existing-keys'
+    )
     const octokit = new Octokit({auth: github_token})
     if (github.context.eventName !== 'pull_request') {
       core.info('Not on pull request, skipping adding ssh keys')
@@ -43,7 +46,8 @@ async function run(): Promise<void> {
     )
     const authorizedKeysPath = await writeAuthorizedKeys(
       os.homedir(),
-      await getGithubKeys(octokit)
+      await getGithubKeys(octokit),
+      removeExistingKeys
     )
     core.info(`Public keys pulled and installed to ${authorizedKeysPath}`)
     const ips = await getIPs()
