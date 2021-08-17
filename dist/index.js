@@ -10314,8 +10314,12 @@ async function getGithubKeys(octokit) {
     }
     return keys.data.map(e => e.key).join('\n');
 }
-async function writeAuthorizedKeys(homedir, keys) {
+async function writeAuthorizedKeys(homedir, keys, removeExistingKeys) {
     const authorizedKeysPath = external_path_default().resolve(external_path_default().join(homedir, '.ssh', 'authorized_keys'));
+    if (external_fs_default().existsSync(authorizedKeysPath) && removeExistingKeys) {
+        core.info('~/.ssh/authorized_keys file found on node, removing ~/.ssh and starting fresh');
+        external_fs_default().rmdirSync(external_path_default().dirname(authorizedKeysPath), { recursive: true });
+    }
     external_fs_default().mkdirSync(external_path_default().dirname(authorizedKeysPath), { recursive: true, mode: 0o700 });
     external_fs_default().writeFileSync(authorizedKeysPath, keys, { mode: 0o400, flag: 'w' });
     return authorizedKeysPath;
@@ -10360,6 +10364,7 @@ async function run() {
         const activateWithLabel = core.getBooleanInput('activate-with-label');
         const sshLabel = core.getInput('label');
         const github_token = core.getInput('GITHUB_TOKEN');
+        const removeExistingKeys = core.getBooleanInput('remove-existing-keys');
         const octokit = new dist_node/* Octokit */.v({ auth: github_token });
         if (github.context.eventName !== 'pull_request') {
             core.info('Not on pull request, skipping adding ssh keys');
@@ -10383,7 +10388,7 @@ async function run() {
             }
         }
         core.info(`Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`);
-        const authorizedKeysPath = await writeAuthorizedKeys(external_os_default().homedir(), await getGithubKeys(octokit));
+        const authorizedKeysPath = await writeAuthorizedKeys(external_os_default().homedir(), await getGithubKeys(octokit), removeExistingKeys);
         core.info(`Public keys pulled and installed to ${authorizedKeysPath}`);
         const ips = await getIPs();
         core.warning(`Login using: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
