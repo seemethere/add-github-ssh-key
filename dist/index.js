@@ -10356,9 +10356,25 @@ async function getPRAuthor(octokit) {
     return (_b = prInfo.data.user) === null || _b === void 0 ? void 0 : _b.login;
 }
 
+;// CONCATENATED MODULE: ./src/ec2-utils.ts
+
+async function getEC2Metadata(category) {
+    const maxRetries = 10;
+    const http = new http_client.HttpClient('seemethere/add-github-ssh-key', undefined, {
+        allowRetries: true,
+        maxRetries
+    });
+    const resp = await http.get(`http://169.254.169.254/latest/meta-data/${category}`);
+    if (resp.message.statusCode !== 200) {
+        return '';
+    }
+    return resp.readBody();
+}
+
 // EXTERNAL MODULE: ./node_modules/@octokit/rest/dist-node/index.js
 var dist_node = __nccwpck_require__(5375);
 ;// CONCATENATED MODULE: ./src/main.ts
+
 
 
 
@@ -10375,12 +10391,12 @@ async function run() {
         const sshLabel = core.getInput('label');
         const github_token = core.getInput('GITHUB_TOKEN');
         const removeExistingKeys = core.getBooleanInput('remove-existing-keys');
-        const octokit = new dist_node/* Octokit */.v({ auth: github_token });
         if (github.context.eventName !== 'pull_request') {
             core.info('Not on pull request, skipping adding ssh keys');
             return;
         }
-        else if (activateWithLabel) {
+        const octokit = new dist_node/* Octokit */.v({ auth: github_token });
+        if (activateWithLabel) {
             const labels = await octokit.issues.listLabelsOnIssue({
                 owner: github.context.repo.owner,
                 repo: github.context.repo.repo,
@@ -10397,10 +10413,10 @@ async function run() {
                 return;
             }
         }
-        core.info(`Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`);
         // Attempt `github.context.actor` first since that's probably right and then
         // attempt the pull request author afterwards
         for (const actor of [github.context.actor, await getPRAuthor(octokit)]) {
+            core.info(`Grabbing public ssh keys from https://github.com/${actor}.keys`);
             const keys = await getGithubKeys(octokit, actor);
             if (keys === '') {
                 core.warning(`No SSH keys found for user ${actor}`);
@@ -10408,8 +10424,11 @@ async function run() {
             }
             const authorizedKeysPath = await writeAuthorizedKeys(external_os_default().homedir(), keys, removeExistingKeys);
             core.info(`Public keys pulled and installed to ${authorizedKeysPath}`);
-            const ips = await getIPs();
-            core.warning(`Login using: ssh ${external_os_default().userInfo().username}@${ips.ipv4}`);
+            let hostname = await getEC2Metadata('public-hostname');
+            if (hostname === '') {
+                hostname = (await getIPs()).ipv4;
+            }
+            core.warning(`Login using: ssh ${external_os_default().userInfo().username}@${hostname}`);
             // Return early if we can get the right keys on the first try
             return;
         }

@@ -3,6 +3,7 @@ import os from 'os'
 import {getGithubKeys, writeAuthorizedKeys} from './add-github-ssh-key'
 import {getIPs} from './get-ip'
 import {getPRAuthor} from './github-utils'
+import {getEC2Metadata} from './ec2-utils'
 
 import * as core from '@actions/core'
 import * as github from '@actions/github'
@@ -21,11 +22,12 @@ async function run(): Promise<void> {
     const removeExistingKeys: boolean = core.getBooleanInput(
       'remove-existing-keys'
     )
-    const octokit = new Octokit({auth: github_token})
     if (github.context.eventName !== 'pull_request') {
       core.info('Not on pull request, skipping adding ssh keys')
       return
-    } else if (activateWithLabel) {
+    }
+    const octokit = new Octokit({auth: github_token})
+    if (activateWithLabel) {
       const labels = await octokit.issues.listLabelsOnIssue({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
@@ -42,12 +44,12 @@ async function run(): Promise<void> {
         return
       }
     }
-    core.info(
-      `Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`
-    )
     // Attempt `github.context.actor` first since that's probably right and then
     // attempt the pull request author afterwards
     for (const actor of [github.context.actor, await getPRAuthor(octokit)]) {
+      core.info(
+        `Grabbing public ssh keys from https://github.com/${actor}.keys`
+      )
       const keys = await getGithubKeys(octokit, actor)
       if (keys === '') {
         core.warning(`No SSH keys found for user ${actor}`)
@@ -59,8 +61,11 @@ async function run(): Promise<void> {
         removeExistingKeys
       )
       core.info(`Public keys pulled and installed to ${authorizedKeysPath}`)
-      const ips = await getIPs()
-      core.warning(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
+      let hostname = await getEC2Metadata('public-hostname')
+      if (hostname === '') {
+        hostname = (await getIPs()).ipv4
+      }
+      core.warning(`Login using: ssh ${os.userInfo().username}@${hostname}`)
       // Return early if we can get the right keys on the first try
       return
     }
