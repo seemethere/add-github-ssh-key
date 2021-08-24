@@ -2,6 +2,7 @@ import os from 'os'
 
 import {getGithubKeys, writeAuthorizedKeys} from './add-github-ssh-key'
 import {getIPs} from './get-ip'
+import {getPRAuthor} from './github-utils'
 
 import * as core from '@actions/core'
 import * as github from '@actions/github'
@@ -44,14 +45,25 @@ async function run(): Promise<void> {
     core.info(
       `Grabbing public ssh keys from https://github.com/${github.context.actor}.keys`
     )
-    const authorizedKeysPath = await writeAuthorizedKeys(
-      os.homedir(),
-      await getGithubKeys(octokit),
-      removeExistingKeys
-    )
-    core.info(`Public keys pulled and installed to ${authorizedKeysPath}`)
-    const ips = await getIPs()
-    core.warning(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
+    // Attempt `github.context.actor` first since that's probably right and then
+    // attempt the pull request author afterwards
+    for (const actor of [github.context.actor, await getPRAuthor(octokit)]) {
+      const keys = await getGithubKeys(octokit, actor)
+      if (keys === '') {
+        core.warning(`No SSH keys found for user ${actor}`)
+        continue
+      }
+      const authorizedKeysPath = await writeAuthorizedKeys(
+        os.homedir(),
+        keys,
+        removeExistingKeys
+      )
+      core.info(`Public keys pulled and installed to ${authorizedKeysPath}`)
+      const ips = await getIPs()
+      core.warning(`Login using: ssh ${os.userInfo().username}@${ips.ipv4}`)
+      // Return early if we can get the right keys on the first try
+      return
+    }
   } catch (error) {
     core.setFailed(error.message)
   }
