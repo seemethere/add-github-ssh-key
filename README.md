@@ -3,8 +3,6 @@
 This actions adds the Github ssh keys found from `https://github.com/${{ github.actor }}.keys` and places them in `~/.ssh/authorized_keys` so that users can easily log into
 Github Actions runners without having to go through the work of adding the keys manually.
 
-> NOTE: Windows not yet tested
-
 # Usage
 
 ```yaml
