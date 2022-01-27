@@ -2,7 +2,7 @@ import os from 'os'
 
 import {getGithubKeys, writeAuthorizedKeys} from './add-github-ssh-key'
 import {getIPs} from './get-ip'
-import {getPRAuthor} from './github-utils'
+import {getPRAuthor, extractCiFlowPrNumber} from './github-utils'
 import {getEC2Metadata} from './ec2-utils'
 
 import * as core from '@actions/core'
@@ -22,16 +22,24 @@ async function run(): Promise<void> {
     const removeExistingKeys: boolean = core.getBooleanInput(
       'remove-existing-keys'
     )
+    let prNumber = github.context.payload.pull_request?.number as number
     if (github.context.eventName !== 'pull_request') {
-      core.info('Not on pull request, skipping adding ssh keys')
-      return
+      prNumber = extractCiFlowPrNumber(github.context.ref)
+      // Only bump out on pull request events if no pull request number could be derived
+      if (isNaN(prNumber)) {
+        // Attempt to derive prNumber from ciflow
+        core.info(
+          'Not on pull request and ciflow reference could not be extracted, skipping adding ssh keys'
+        )
+        return
+      }
     }
     const octokit = new Octokit({auth: github_token})
     if (activateWithLabel) {
       const labels = await octokit.issues.listLabelsOnIssue({
         owner: github.context.repo.owner,
         repo: github.context.repo.repo,
-        issue_number: github.context.payload.pull_request?.number as number
+        issue_number: prNumber
       })
       let sshLabelSet = false
       for (const label of labels.data) {
@@ -46,7 +54,10 @@ async function run(): Promise<void> {
     }
     // Attempt `github.context.actor` first since that's probably right and then
     // attempt the pull request author afterwards
-    for (const actor of [github.context.actor, await getPRAuthor(octokit)]) {
+    for (const actor of [
+      github.context.actor,
+      await getPRAuthor(octokit, prNumber)
+    ]) {
       core.info(
         `Grabbing public ssh keys from https://github.com/${actor}.keys`
       )
