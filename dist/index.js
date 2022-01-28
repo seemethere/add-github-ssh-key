@@ -10357,7 +10357,7 @@ async function getPRAuthor(octokit, prNumber) {
     return (_a = prInfo.data.user) === null || _a === void 0 ? void 0 : _a.login;
 }
 function extractCiFlowPrNumber(reference) {
-    if (reference) {
+    if (reference.includes('ciflow')) {
         core.info('ciflow reference detected, attempting to extract PR number');
         const potentialPrNumber = reference.split('/').pop();
         if (potentialPrNumber === undefined) {

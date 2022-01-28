@@ -16,3 +16,13 @@ test('[branch] no ciflow tag', async () => {
   const prNumber = extractCiFlowPrNumber('refs/branch/master')
   expect(prNumber).toBe(NaN)
 })
+
+test('[branch] no ciflow tag, but named ciflow', async () => {
+  const prNumber = extractCiFlowPrNumber('refs/branch/ciflow_fix')
+  expect(prNumber).toBe(NaN)
+})
+
+test('garbage reference', async () => {
+  const prNumber = extractCiFlowPrNumber('748392174890157sfghalyr7083qovszlkghvlav')
+  expect(prNumber).toBe(NaN)
+})

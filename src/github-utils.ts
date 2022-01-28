@@ -15,15 +15,9 @@ export async function getPRAuthor(
 }
 
 export function extractCiFlowPrNumber(reference: string): number {
-  if (reference.includes("ciflow")) {
+  if (reference.includes('ciflow')) {
     core.info('ciflow reference detected, attempting to extract PR number')
-    const potentialPrNumber = reference.split('/').pop()
-    if (potentialPrNumber === undefined) {
-      core.error(
-        `Could not derive PR number from ciflow reference ${reference}, is everything alright?`
-      )
-    }
-    return Number(potentialPrNumber)
+    return Number(reference.split('/').pop())
   }
   return NaN
 }
