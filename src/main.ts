@@ -63,7 +63,7 @@ async function run(): Promise<void> {
       )
       const keys = await getGithubKeys(octokit, actor)
       if (keys === '') {
-        core.warning(`No SSH keys found for user ${actor}`)
+        core.info(`No SSH keys found for user ${actor}`)
         continue
       }
       const authorizedKeysPath = await writeAuthorizedKeys(

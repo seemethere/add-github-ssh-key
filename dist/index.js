@@ -12850,7 +12850,7 @@ async function run() {
             core.info(`Grabbing public ssh keys from https://github.com/${actor}.keys`);
             const keys = await getGithubKeys(octokit, actor);
             if (keys === '') {
-                core.warning(`No SSH keys found for user ${actor}`);
+                core.info(`No SSH keys found for user ${actor}`);
                 continue;
             }
             const authorizedKeysPath = await writeAuthorizedKeys(external_os_default().homedir(), keys, removeExistingKeys);
