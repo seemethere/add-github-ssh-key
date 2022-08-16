@@ -76,7 +76,7 @@ async function run(): Promise<void> {
       if (hostname === '') {
         hostname = (await getIPs()).ipv4
       }
-      core.warning(`Login using: ssh ${os.userInfo().username}@${hostname}`)
+      core.info(`Login using: ssh ${os.userInfo().username}@${hostname}`)
       // Return early if we can get the right keys on the first try
       return
     }
